@@ -8,7 +8,7 @@ import (
 )
 
 func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(cfg.DBName), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -16,10 +16,3 @@ func NewPostgresDB(cfg *config.Config) (*gorm.DB, error) {
 	// Migrate the schema
 	// db.AutoMigrate(&Product{})
 }
-
-// func migrate(db *gorm.DB) error {
-// 	if err := db.AutoMigrate(&entity.User{}); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }

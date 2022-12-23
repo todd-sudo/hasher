@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	DBName string `env:"DB_NAME" env-default:"hasher_database"`
+	DBName string `env:"DB_NAME" env-default:"hasher_database.db"`
 }
 
 var instance *Config

@@ -8,7 +8,7 @@ import (
 
 type storage interface {
 	saveUser(ctx context.Context, user *User) (*User, error)
-	getUser(ctx context.Context, username string, password string) (*User, error)
+	getUser(ctx context.Context, username string) (*User, error)
 }
 
 type Storage struct {
@@ -16,7 +16,7 @@ type Storage struct {
 	connection *gorm.DB
 }
 
-func NewStorage(ctx context.Context, connection *gorm.DB) storage {
+func NewStorage(ctx context.Context, connection *gorm.DB) *Storage {
 	return &Storage{ctx: ctx, connection: connection}
 }
 
@@ -29,10 +29,10 @@ func (db *Storage) saveUser(ctx context.Context, user *User) (*User, error) {
 	return user, nil
 }
 
-func (db *Storage) getUser(ctx context.Context, username string, password string) (*User, error) {
+func (db *Storage) getUser(ctx context.Context, username string) (*User, error) {
 	tx := db.connection.WithContext(ctx).Debug()
 	var user *User
-	res := tx.Where(`username = ? AND password = ?`, username, password).Find(&user)
+	res := tx.Where(`username = ?`, username).Find(&user)
 	if res.Error != nil {
 		return nil, res.Error
 	}

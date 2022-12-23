@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/fatih/color"
 )
@@ -10,10 +9,10 @@ import (
 const (
 	helloMsg    = "Привет!\n\nЛогин и пароль не забывать!\n\nЧтобы сохранить запись, для начала залогинься\n\n"
 	usernameMsg = "Username: "
-	passwordMsg = "\nPassword: "
+	passwordMsg = "Password: "
 )
 
-func loginHandler() {
+func loginReader() (string, string, error) {
 	var username string
 	var password string
 	cyan := color.New(color.FgCyan)
@@ -21,19 +20,14 @@ func loginHandler() {
 	cyan.Print(usernameMsg)
 	_, err := fmt.Scan(&username)
 	if err != nil {
-		log.Fatalln(err)
+		return "", "", err
 	}
 
 	cyan.Print(passwordMsg)
 	_, err = fmt.Scan(&password)
 	if err != nil {
-		log.Fatalln(err)
+		return "", "", err
 	}
 
-	color.Red("\n%s:%s", username, password)
-}
-
-func startReader() {
-	color.Green(helloMsg)
-	loginHandler()
+	return username, password, nil
 }

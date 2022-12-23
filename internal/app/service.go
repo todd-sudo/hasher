@@ -15,7 +15,7 @@ type Service struct {
 	st  *Storage
 }
 
-func NewService(ctx context.Context, st *Storage) service {
+func NewService(ctx context.Context, st *Storage) *Service {
 	return &Service{ctx: ctx, st: st}
 }
 
@@ -29,11 +29,24 @@ func (s *Service) saveUser(ctx context.Context, user *User) (*User, error) {
 	if err != nil {
 		log.Fatalln("Ошибка сохранения пользователя")
 	}
+	return user, nil
 }
 
-func (s *Service) getUser(ctx context.Context, username string, password string) (*User, error) {
-	// TODO: Сделать получение пользователя и сравнение пароля
-	hashPasswd := compareHashAndPassword()
-	user, err := s.st.getUser(ctx, username, hashPasswd)
+func (s *Service) getUser(
+	ctx context.Context,
+	username string,
+	password string,
+) (*User, error) {
+	user, err := s.st.getUser(ctx, username)
+	if err != nil || user == nil {
+		user, err = s.saveUser(ctx, &User{Username: username, Password: password})
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := compareHashAndPassword(user.Password, password); err != nil {
+		log.Fatalf("Неверный пароль для пользователя с username: %s", username)
+		return nil, err
+	}
 	return user, nil
 }

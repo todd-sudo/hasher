@@ -5,16 +5,11 @@ import (
 	"hasher/internal/config"
 	"hasher/internal/db"
 	"log"
+
 	"os"
 
 	"gorm.io/gorm"
 )
-
-// import (
-// 	"fmt"
-
-// 	"github.com/fatih/color"
-// )
 
 func RunApplication() {
 	ctx := context.Background()

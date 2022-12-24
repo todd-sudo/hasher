@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	DBName string `env:"DB_NAME" env-default:"hasher_database.db"`
+	Limit  int    `env:"LIMIT" env-default:"5"`
 }
 
 var instance *Config

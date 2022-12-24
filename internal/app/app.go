@@ -5,6 +5,7 @@ import (
 	"hasher/internal/config"
 	"hasher/internal/db"
 	"log"
+	"os"
 
 	"gorm.io/gorm"
 )
@@ -27,24 +28,29 @@ func RunApplication() {
 	}
 	_storage := NewStorage(ctx, _db)
 	_service := NewService(ctx, _storage)
-	_handler := NewHandler(ctx, _service)
+	_handler := NewHandler(ctx, _service, *cfg)
+	runner(ctx, _handler)
+}
 
+func runner(ctx context.Context, _handler handler) {
 	_handler.login(ctx)
-	// var description string
-	// fmt.Println("Как тебя зовут?")
-	// var tempText string
-	// for {
-	// 	fmt.Scanf("%s\n", &tempText)
-	// 	if tempText == "END" {
-	// 		break
-	// 	}
-	// 	description += fmt.Sprintf("%s\n", tempText)
-	// }
-	// color.Cyan(description)
+	for {
+		state := rootReader()
+		switch state {
+		case "1":
+			_handler.getAllSecrets(ctx)
+			return
+		case "2":
+			_handler.insertSecret(ctx)
+			return
+		case "3":
+			os.Exit(0)
+		}
+	}
 }
 
 func migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&User{}); err != nil {
+	if err := db.AutoMigrate(&User{}, &Secret{}); err != nil {
 		return err
 	}
 	return nil

@@ -3,19 +3,25 @@ package app
 import (
 	"context"
 	"log"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/mashingan/smapping"
 )
 
 type service interface {
 	saveUser(ctx context.Context, user *User) (*User, error)
 	getUser(ctx context.Context, username string, hashedPassword string) (*User, error)
+	getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error)
+	insertSecret(ctx context.Context, secretDTO *CreateSecretDTO) error
 }
 
 type Service struct {
 	ctx context.Context
-	st  *Storage
+	st  storage
 }
 
-func NewService(ctx context.Context, st *Storage) *Service {
+func NewService(ctx context.Context, st storage) service {
 	return &Service{ctx: ctx, st: st}
 }
 
@@ -49,4 +55,25 @@ func (s *Service) getUser(
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *Service) getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error) {
+	secrets, err := s.st.getAllSecrets(ctx, limit, externalID, createdAt)
+	if err != nil {
+		return nil, err
+	}
+	return secrets, nil
+}
+
+func (s *Service) insertSecret(ctx context.Context, secretDTO *CreateSecretDTO) error {
+	secretDB := Secret{}
+	if err := smapping.FillStruct(&secretDB, smapping.MapFields(secretDTO)); err != nil {
+		return err
+	}
+	secretDB.ExternalID = uuid.NewString()
+	secretDB.CreatedAt = time.Now()
+	if err := s.st.insertSecret(ctx, &secretDB); err != nil {
+		return err
+	}
+	return nil
 }

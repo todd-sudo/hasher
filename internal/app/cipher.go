@@ -3,7 +3,7 @@ package app
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -52,7 +52,7 @@ func uploadPrivateKey(privatePemFileName string) (*rsa.PrivateKey, error) {
 }
 
 func generateKeys(cfg config.Config) (*rsa.PrivateKey, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, cfg.SizeRSAKey)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func rsaEncrypt(secretMessage string, key rsa.PublicKey) (string, error) {
 
 	label := []byte("OAEP Encrypted")
 	rng := rand.Reader
-	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, &key, []byte(secretMessage), label)
+	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rng, &key, []byte(secretMessage), label)
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err
@@ -76,7 +76,7 @@ func rsaDecrypt(cipherText string, privKey rsa.PrivateKey) (string, error) {
 	ct, _ := base64.StdEncoding.DecodeString(cipherText)
 	label := []byte("OAEP Encrypted")
 	rng := rand.Reader
-	plaintext, err := rsa.DecryptOAEP(sha256.New(), rng, &privKey, ct, label)
+	plaintext, err := rsa.DecryptOAEP(sha512.New(), rng, &privKey, ct, label)
 	if err != nil {
 		fmt.Println(err.Error())
 		return "", err

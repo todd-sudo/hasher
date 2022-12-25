@@ -19,27 +19,6 @@ import (
 )
 
 func RunApplication() {
-	// var content string
-
-	// var text string
-	// for {
-	// 	fmt.Scanf("%s\n", &text)
-	// 	if text == "END" {
-	// 		break
-	// 	}
-	// 	content += fmt.Sprintf("%s\n", text)
-	// }
-
-	// cfg := config.GetConfig()
-
-	// privatKey, err := checkPrivateKeyFile(*cfg)
-	// if err != nil {
-	// 	log.Panicln("Ошибка создания приватного ключа", err)
-	// }
-	// msg1, _ := rsaEncrypt(content, privatKey.PublicKey)
-
-	// msg, _ := rsaDecrypt(msg1, *privatKey)
-	// fmt.Println(msg)
 
 	ctx := context.Background()
 

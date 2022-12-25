@@ -70,13 +70,14 @@ func (h *Handler) getAllSecrets(ctx context.Context, lastID int) int {
 
 func (h *Handler) insertSecret(ctx context.Context) {
 	title, content := createSecretReader()
-	// contentEncrypt, err := rsaEncrypt(content, h.privateKey.PublicKey)
-	// if err != nil {
-	// 	log.Panicln("Ошибка зашифровки контента", err)
-	// }
+	contentEncrypt, err := rsaEncrypt(content, h.privateKey.PublicKey)
+	if err != nil {
+		color.Red("Ошибка зашифровки контента. Слишком длинный контент")
+		return
+	}
 	secretDTO := CreateSecretDTO{
 		Title:   title,
-		Content: content,
+		Content: contentEncrypt,
 	}
 	if err := h.service.insertSecret(ctx, &secretDTO); err != nil {
 		log.Panicln("Ошибка сохранения секрета")
@@ -95,13 +96,13 @@ func (h *Handler) getSecretByID(ctx context.Context, secretID int) {
 		secretTitle := secret.Title
 		secretCreateAt := secret.CreatedAt.String()
 
-		// secretContentEncode := secret.Content
+		secretContentEncode := secret.Content
 
-		// secretContent, err := rsaDecrypt(secretContentEncode, *h.privateKey)
-		// if err != nil {
-		// 	log.Panicln("Ошибка расшифровки контента", err)
-		// }
-		secretContent := secret.Content
+		secretContent, err := rsaDecrypt(secretContentEncode, *h.privateKey)
+		if err != nil {
+			log.Panicln("Ошибка расшифровки контента", err)
+		}
+		// secretContent := secret.Content
 		clearTerminal()
 		mag.Printf("%d | %s\n\n%v\n\n%s\n", secretId, secretTitle, secretContent, secretCreateAt)
 		var state string

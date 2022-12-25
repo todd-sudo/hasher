@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"log"
 
 	"gorm.io/gorm"
 )
@@ -12,6 +11,7 @@ type storage interface {
 	getUser(ctx context.Context, username string) (*User, error)
 	getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error)
 	insertSecret(ctx context.Context, secret *Secret) error
+	getSecretByID(ctx context.Context, secretID int) (*Secret, error)
 }
 
 type Storage struct {
@@ -35,7 +35,7 @@ func (db *Storage) saveUser(ctx context.Context, user *User) (*User, error) {
 func (db *Storage) getUser(ctx context.Context, username string) (*User, error) {
 	tx := db.connection.WithContext(ctx)
 	var user *User
-	res := tx.Where(`username = ?`, username).Find(&user)
+	res := tx.Take(&user, map[string]string{"username": username})
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -54,9 +54,18 @@ func (db *Storage) getAllSecrets(ctx context.Context, limit int, lastID int) ([]
 
 func (db *Storage) insertSecret(ctx context.Context, secret *Secret) error {
 	tx := db.connection.WithContext(ctx)
-	log.Println(secret)
 	if err := tx.Save(&secret).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+func (db *Storage) getSecretByID(ctx context.Context, secretID int) (*Secret, error) {
+	tx := db.connection.WithContext(ctx)
+	var secret *Secret
+	res := tx.Where(`id = ?`, secretID).Find(&secret)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return secret, nil
 }

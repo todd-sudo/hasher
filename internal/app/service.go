@@ -14,6 +14,7 @@ type service interface {
 	getUser(ctx context.Context, username string, hashedPassword string) (*User, error)
 	getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error)
 	insertSecret(ctx context.Context, secretDTO *CreateSecretDTO) error
+	getSecretByID(ctx context.Context, secretID int) (*Secret, error)
 }
 
 type Service struct {
@@ -44,7 +45,7 @@ func (s *Service) getUser(
 	password string,
 ) (*User, error) {
 	user, err := s.st.getUser(ctx, username)
-	if err != nil || user == nil {
+	if user == nil || err != nil {
 		user, err = s.saveUser(ctx, &User{Username: username, Password: password})
 		if err != nil {
 			return nil, err
@@ -67,13 +68,21 @@ func (s *Service) getAllSecrets(ctx context.Context, limit int, lastID int) ([]*
 
 func (s *Service) insertSecret(ctx context.Context, secretDTO *CreateSecretDTO) error {
 	secretDB := Secret{}
+	secretDB.ExternalID = uuid.NewString()
+	secretDB.CreatedAt = time.Now()
 	if err := smapping.FillStruct(&secretDB, smapping.MapFields(secretDTO)); err != nil {
 		return err
 	}
-	secretDB.ExternalID = uuid.NewString()
-	secretDB.CreatedAt = time.Now()
 	if err := s.st.insertSecret(ctx, &secretDB); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) getSecretByID(ctx context.Context, secretID int) (*Secret, error) {
+	secret, err := s.st.getSecretByID(ctx, secretID)
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
 }

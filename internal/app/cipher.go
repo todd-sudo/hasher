@@ -81,7 +81,6 @@ func rsaDecrypt(cipherText string, privKey rsa.PrivateKey) (string, error) {
 		fmt.Println(err.Error())
 		return "", err
 	}
-	fmt.Println("Plaintext:", string(plaintext))
 	return string(plaintext), nil
 }
 

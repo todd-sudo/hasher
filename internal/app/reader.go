@@ -49,14 +49,16 @@ func createSecretReader() (string, string) {
 
 	yellow.Print("Название: ")
 	fmt.Scanf("%s\n", &title)
-	yellow.Print("Контент:")
+	yellow.Println("Контент:")
 	var text string
 	for {
-		fmt.Scanf("%s\n", &text)
+
+		fmt.Scanf("%s", &text)
 		if text == "END" {
 			break
 		}
-		content += fmt.Sprintf("%s\n", text)
+		text += "\n"
+		content += text
 	}
 	return title, content
 }

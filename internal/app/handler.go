@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/rsa"
+	"fmt"
 	"hasher/internal/config"
 	"log"
 
@@ -13,6 +14,7 @@ type handler interface {
 	login(ctx context.Context)
 	getAllSecrets(ctx context.Context, lastID int) int
 	insertSecret(ctx context.Context)
+	getSecretByID(ctx context.Context, secretID int)
 }
 
 type Handler struct {
@@ -52,13 +54,13 @@ func (h *Handler) getAllSecrets(ctx context.Context, lastID int) int {
 		log.Panicln("Ошибка при получении данных")
 	}
 	if secrets != nil {
-		if len(secrets) < h.cfg.Limit {
-			return 0
-		}
 		for _, secret := range secrets {
 			color.Yellow("ID: %d | %s\n", secret.ID, secret.Title)
 		}
 		lastSecret := secrets[len(secrets)-1]
+		if len(secrets) < h.cfg.Limit {
+			return 0
+		}
 		return int(lastSecret.ID)
 	}
 	color.Red("У вас нет секретов!")
@@ -68,6 +70,10 @@ func (h *Handler) getAllSecrets(ctx context.Context, lastID int) int {
 
 func (h *Handler) insertSecret(ctx context.Context) {
 	title, content := createSecretReader()
+	// contentEncrypt, err := rsaEncrypt(content, h.privateKey.PublicKey)
+	// if err != nil {
+	// 	log.Panicln("Ошибка зашифровки контента", err)
+	// }
 	secretDTO := CreateSecretDTO{
 		Title:   title,
 		Content: content,
@@ -76,4 +82,36 @@ func (h *Handler) insertSecret(ctx context.Context) {
 		log.Panicln("Ошибка сохранения секрета")
 	}
 	color.Blue("Секрет сохранен")
+}
+
+func (h *Handler) getSecretByID(ctx context.Context, secretID int) {
+	for {
+		mag := color.New(color.FgMagenta)
+		secret, err := h.service.getSecretByID(ctx, secretID)
+		if err != nil {
+			log.Panicln("Ошибка при получение секрета", err)
+		}
+		secretId := secret.ID
+		secretTitle := secret.Title
+		secretCreateAt := secret.CreatedAt.String()
+
+		// secretContentEncode := secret.Content
+
+		// secretContent, err := rsaDecrypt(secretContentEncode, *h.privateKey)
+		// if err != nil {
+		// 	log.Panicln("Ошибка расшифровки контента", err)
+		// }
+		secretContent := secret.Content
+		clearTerminal()
+		mag.Printf("%d | %s\n\n%v\n\n%s\n", secretId, secretTitle, secretContent, secretCreateAt)
+		var state string
+		fmt.Print("\n\nНажми q чтобы перейти назад ...\n\n>> ")
+		fmt.Scan(&state)
+		if state == "q" {
+			return
+		}
+		clearTerminal()
+		continue
+	}
+
 }

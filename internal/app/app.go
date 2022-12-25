@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"hasher/internal/config"
 	"hasher/internal/db"
+
 	"log"
-	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 
@@ -17,14 +19,36 @@ import (
 )
 
 func RunApplication() {
+	// var content string
+
+	// var text string
+	// for {
+	// 	fmt.Scanf("%s\n", &text)
+	// 	if text == "END" {
+	// 		break
+	// 	}
+	// 	content += fmt.Sprintf("%s\n", text)
+	// }
+
+	// cfg := config.GetConfig()
+
+	// privatKey, err := checkPrivateKeyFile(*cfg)
+	// if err != nil {
+	// 	log.Panicln("Ошибка создания приватного ключа", err)
+	// }
+	// msg1, _ := rsaEncrypt(content, privatKey.PublicKey)
+
+	// msg, _ := rsaDecrypt(msg1, *privatKey)
+	// fmt.Println(msg)
+
+	ctx := context.Background()
+
 	cfg := config.GetConfig()
 
 	privatKey, err := checkPrivateKeyFile(*cfg)
 	if err != nil {
 		log.Panicln("Ошибка создания приватного ключа", err)
 	}
-
-	ctx := context.Background()
 
 	_db, err := db.NewPostgresDB(cfg)
 	if err != nil {
@@ -68,21 +92,25 @@ func viewSecrets(ctx context.Context, _handler handler) {
 		green.Print("\n\n1. Далее\n0. Выход\n\n>> ")
 		var state string
 		fmt.Scan(&state)
+		detail := strings.Contains(state, "$")
+		if detail {
+			_state := strings.Replace(state, "$", "", 1)
+			secretID, err := strconv.Atoi(_state)
+			if err != nil {
+				color.Red("Некорректный ID секрета", err)
+				return
+			}
 
+			_handler.getSecretByID(ctx, secretID)
+		}
 		switch state {
 		case "1":
-
 			lastID = newLastID
 		case "0":
 			return
 		}
-	}
-}
 
-func clearTerminal() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	}
 }
 
 func checkPrivateKeyFile(cfg config.Config) (*rsa.PrivateKey, error) {

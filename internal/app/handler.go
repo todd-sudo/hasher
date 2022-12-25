@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/rsa"
 	"hasher/internal/config"
 	"log"
 
@@ -10,18 +11,24 @@ import (
 
 type handler interface {
 	login(ctx context.Context)
-	getAllSecrets(ctx context.Context)
+	getAllSecrets(ctx context.Context, lastID int) int
 	insertSecret(ctx context.Context)
 }
 
 type Handler struct {
-	ctx     context.Context
-	cfg     config.Config
-	service service
+	privateKey *rsa.PrivateKey
+	ctx        context.Context
+	cfg        config.Config
+	service    service
 }
 
-func NewHandler(ctx context.Context, service service, cfg config.Config) handler {
-	return &Handler{ctx: ctx, service: service, cfg: cfg}
+func NewHandler(
+	ctx context.Context,
+	service service,
+	cfg config.Config,
+	privateKey *rsa.PrivateKey,
+) handler {
+	return &Handler{ctx: ctx, service: service, cfg: cfg, privateKey: privateKey}
 }
 
 func (h *Handler) login(ctx context.Context) {
@@ -29,43 +36,34 @@ func (h *Handler) login(ctx context.Context) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	user, err := h.service.getUser(ctx, username, password)
+	_, err = h.service.getUser(ctx, username, password)
 	if err != nil {
 		log.Panicln(err)
 	}
 
 	log.Println("Вы вошли!")
-	log.Println(user)
 }
 
-func (h *Handler) getAllSecrets(ctx context.Context) {
-	var externalID string
-	var createdAt string
-
-	externalIDCtx := ctx.Value("externalID")
-	createdAtCtx := ctx.Value("createdAt")
-
-	if externalIDCtx != nil && createdAtCtx != nil {
-		externalID = externalIDCtx.(string)
-		createdAt = createdAtCtx.(string)
-	}
-
-	secrets, err := h.service.getAllSecrets(ctx, h.cfg.Limit, externalID, createdAt)
+func (h *Handler) getAllSecrets(ctx context.Context, lastID int) int {
+	clearTerminal()
+	color.Yellow("Перемещайся по секретам с помощью кнопок.\nЧтобы выбрать секрет введи: $ID_SECRET\n\n")
+	secrets, err := h.service.getAllSecrets(ctx, h.cfg.Limit, lastID)
 	if err != nil {
 		log.Panicln("Ошибка при получении данных")
 	}
-	log.Println(secrets)
 	if secrets != nil {
+		if len(secrets) < h.cfg.Limit {
+			return 0
+		}
 		for _, secret := range secrets {
-			content := secret.Content
-			color.Yellow("ID: %d | %s\n\n%s\nCreate at: %s", secret.ID, secret.Title, content, secret.CreatedAt)
+			color.Yellow("ID: %d | %s\n", secret.ID, secret.Title)
 		}
 		lastSecret := secrets[len(secrets)-1]
-		_ = context.WithValue(ctx, "externalID", lastSecret.ExternalID)
-		_ = context.WithValue(ctx, "createdAt", lastSecret.CreatedAt)
+		return int(lastSecret.ID)
 	}
-
 	color.Red("У вас нет секретов!")
+	return 0
+
 }
 
 func (h *Handler) insertSecret(ctx context.Context) {

@@ -12,7 +12,7 @@ import (
 type service interface {
 	saveUser(ctx context.Context, user *User) (*User, error)
 	getUser(ctx context.Context, username string, hashedPassword string) (*User, error)
-	getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error)
+	getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error)
 	insertSecret(ctx context.Context, secretDTO *CreateSecretDTO) error
 }
 
@@ -57,8 +57,8 @@ func (s *Service) getUser(
 	return user, nil
 }
 
-func (s *Service) getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error) {
-	secrets, err := s.st.getAllSecrets(ctx, limit, externalID, createdAt)
+func (s *Service) getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error) {
+	secrets, err := s.st.getAllSecrets(ctx, limit, lastID)
 	if err != nil {
 		return nil, err
 	}

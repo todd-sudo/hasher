@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	DBName string `env:"DB_NAME" env-default:"hasher_database.db"`
-	Limit  int    `env:"LIMIT" env-default:"5"`
+	DBName             string `env:"DB_NAME" env-default:"hasher_database.db"`
+	Limit              int    `env:"LIMIT" env-default:"5"`
+	PrivatePemFileName string `env:"PRIVATE_PEM_FILE_NAME" env-default:"private.pem"`
 }
 
 var instance *Config
@@ -17,7 +18,6 @@ var once sync.Once
 
 func GetConfig() *Config {
 	once.Do(func() {
-		log.Println("gather config")
 
 		instance = &Config{}
 

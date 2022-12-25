@@ -16,13 +16,13 @@ import (
 )
 
 // savePrivateKeyToFile - dump private key to file
-func savePrivateKeyToFile(privateKey *rsa.PrivateKey) {
+func savePrivateKeyToFile(privateKey *rsa.PrivateKey, privatePemFileName string) {
 	var privateKeyBytes []byte = x509.MarshalPKCS1PrivateKey(privateKey)
 	privateKeyBlock := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: privateKeyBytes,
 	}
-	privatePem, err := os.Create("private.pem")
+	privatePem, err := os.Create(privatePemFileName)
 	if err != nil {
 		fmt.Printf("error when create private.pem: %s \n", err)
 		os.Exit(1)
@@ -34,9 +34,9 @@ func savePrivateKeyToFile(privateKey *rsa.PrivateKey) {
 	}
 }
 
-func uploadPrivateKey(pK *rsa.PrivateKey) (*rsa.PrivateKey, error) {
+func uploadPrivateKey(privatePemFileName string) (*rsa.PrivateKey, error) {
 
-	privatePem, err := os.ReadFile("private.pem")
+	privatePem, err := os.ReadFile(privatePemFileName)
 	if err != nil {
 		log.Println("Ошибка чтения private.pem", err)
 		return nil, err

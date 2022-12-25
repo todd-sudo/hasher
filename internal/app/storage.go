@@ -10,7 +10,7 @@ import (
 type storage interface {
 	saveUser(ctx context.Context, user *User) (*User, error)
 	getUser(ctx context.Context, username string) (*User, error)
-	getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error)
+	getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error)
 	insertSecret(ctx context.Context, secret *Secret) error
 }
 
@@ -33,7 +33,7 @@ func (db *Storage) saveUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (db *Storage) getUser(ctx context.Context, username string) (*User, error) {
-	tx := db.connection.WithContext(ctx).Debug()
+	tx := db.connection.WithContext(ctx)
 	var user *User
 	res := tx.Where(`username = ?`, username).Find(&user)
 	if res.Error != nil {
@@ -42,22 +42,11 @@ func (db *Storage) getUser(ctx context.Context, username string) (*User, error) 
 	return user, nil
 }
 
-func (db *Storage) getAllSecrets(ctx context.Context, limit int, externalID, createdAt string) ([]*Secret, error) {
-	tx := db.connection.WithContext(ctx).Debug()
+func (db *Storage) getAllSecrets(ctx context.Context, limit int, lastID int) ([]*Secret, error) {
+	tx := db.connection.WithContext(ctx)
 	var secrets []*Secret
 
-	if externalID == "" && createdAt == "" {
-		if err := tx.Limit(limit).Order("id DESC").Find(&secrets).Error; err != nil {
-			return nil, err
-		}
-		return secrets, nil
-	}
-
-	if err := tx.Where(
-		`(external_id, created_at) < (?, ?)`,
-		externalID,
-		createdAt,
-	).Limit(limit).Order("id DESC").Find(&secrets).Error; err != nil {
+	if err := tx.Where(`id >= ?`, lastID).Limit(limit).Find(&secrets).Error; err != nil {
 		return nil, err
 	}
 	return secrets, nil

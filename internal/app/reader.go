@@ -16,15 +16,15 @@ const (
 func loginReader() (string, string, error) {
 	var username string
 	var password string
-	cyan := color.New(color.FgCyan)
+	blue := color.New(color.FgHiBlue)
 
-	cyan.Print(usernameMsg)
+	blue.Print(usernameMsg)
 	_, err := fmt.Scan(&username)
 	if err != nil {
 		return "", "", err
 	}
 
-	cyan.Print(passwordMsg)
+	blue.Print(passwordMsg)
 	_, err = fmt.Scan(&password)
 	if err != nil {
 		return "", "", err
@@ -39,11 +39,6 @@ func rootReader() string {
 	var state string
 	fmt.Scanf("%s", &state)
 	return state
-}
-
-// allSecretsReader - показ всех записей
-func allSecretsReader() {
-	color.Green("hello")
 }
 
 func createSecretReader() (string, string) {
